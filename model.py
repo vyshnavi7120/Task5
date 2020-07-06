@@ -1,0 +1,93 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "dataset = pd.read_csv('webserverlog.csv')\n",
+    "\n",
+    "from sklearn.preprocessing import OneHotEncoder, LabelEncoder\n",
+    "X = dataset.iloc[:,:]\n",
+    "x = X.to_numpy()\n",
+    "\n",
+    "label = LabelEncoder()\n",
+    "\n",
+    "IP = label.fit_transform(x[:,0])\n",
+    "D = label.fit_transform(x[:,1])\n",
+    "U = label.fit_transform(x[:,2])\n",
+    "\n",
+    "df1 = pd.DataFrame(IP, columns=['IPs'])\n",
+    "df2 = pd.DataFrame(D, columns=['DATE'])\n",
+    "df3 = pd.DataFrame(U, columns=['URL'])\n",
+    "\n",
+    "frames = [df1, df2, df3]\n",
+    "result = pd.concat(frames, axis=1 )\n",
+    "\n",
+    "from sklearn.preprocessing import StandardScaler\n",
+    "sc = StandardScaler()\n",
+    "\n",
+    "data_scaled = sc.fit_transform(result)\n",
+    "\n",
+    "from sklearn.cluster import KMeans\n",
+    "\n",
+    "model = KMeans(n_clusters=10)\n",
+    "model.fit(data_scaled)\n",
+    "pred  = model.fit_predict(data_scaled)\n",
+    "dataset_scaled = pd.DataFrame(data_scaled, columns=['IP', 'Date', 'URL'])\n",
+    "\n",
+    "dataset_scaled['cluster name'] = pred\n",
+    "\n",
+    "ips = [dataset['IP'], result['IPs']]\n",
+    "ips_result = pd.concat(ips, axis=1)\n",
+    "\n",
+    "def CountFrequency(my_list, ip_label): \n",
+    "  \n",
+    "    # Creating an empty dictionary  \n",
+    "    freq = {} \n",
+    "    for item in my_list: \n",
+    "        if (item in freq): \n",
+    "            freq[item] += 1\n",
+    "        else: \n",
+    "            freq[item] = 1\n",
+    "    max_freq = 0\n",
+    "    max_key = 0\n",
+    "    for key, value in freq.items(): \n",
+    "        if value > max_freq:\n",
+    "            max_freq = value\n",
+    "            max_key = key\n",
+    "    \n",
+    "    return ip_label[my_list.index(max_key)]\n",
+    "\n",
+    "res = CountFrequency(ips_result['IPs'].tolist(), ips_result['IP'].tolist())\n",
+    "\n",
+    "file1 = open(\"result.txt\",\"w\")\n",
+    "file1.write(res)\n",
+    "file1.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.7"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
